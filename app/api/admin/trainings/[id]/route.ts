@@ -1,0 +1,9 @@
+import { headers } from 'next/headers'
+import { NextResponse } from 'next/server'
+import { eq } from 'drizzle-orm'
+import { auth } from '@/lib/auth'
+import { db } from '@/lib/db'
+import { trainingType, user } from '@/lib/db/schema'
+async function guard() { const session = await auth.api.getSession({ headers: await headers() }); if (!session?.user) return false; const row = await db.select({ role: user.role }).from(user).where(eq(user.id, session.user.id)).limit(1); return row[0]?.role === 'admin' }
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) { if (!await guard()) return NextResponse.json({ error: 'Forbidden' }, { status: 403 }); const body = await request.json(); const updates: Partial<typeof trainingType.$inferInsert> = {}; if (typeof body.active === 'boolean') updates.active = body.active; if (typeof body.name === 'string' && body.name.trim()) updates.name = body.name.trim(); if (typeof body.description === 'string' && body.description.trim()) updates.description = body.description.trim(); if (Number.isInteger(body.durationMinutes) && body.durationMinutes >= 15 && body.durationMinutes <= 240) updates.durationMinutes = body.durationMinutes; if (Number.isInteger(body.capacity) && body.capacity >= 1 && body.capacity <= 50) updates.capacity = body.capacity; if (Number.isInteger(body.price) && body.price >= 0) updates.price = body.price; if (Object.keys(updates).length === 0) return NextResponse.json({ error: 'Invalid data' }, { status: 400 }); await db.update(trainingType).set(updates).where(eq(trainingType.id, (await params).id)); return NextResponse.json({ ok: true }) }
+export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) { if (!await guard()) return NextResponse.json({ error: 'Forbidden' }, { status: 403 }); await db.delete(trainingType).where(eq(trainingType.id, (await params).id)); return NextResponse.json({ ok: true }) }
