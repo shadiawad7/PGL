@@ -46,10 +46,11 @@ export function AvailabilityCalendar({ training }: { training: string }) {
     setLoading(true)
     setMessage('')
     try {
-      const response = await fetch(`/api/bookings?date=${date}&training=${encodeURIComponent(training)}`, { cache: 'no-store' })
+      const response = await fetch(`/api/bookings?date=${date}&trainingId=${encodeURIComponent(training)}`, { cache: 'no-store' })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || 'No se han podido cargar los horarios')
       setSlots(data.slots || [])
+      if (data.message) setMessage(data.message)
     } catch (error) {
       setSlots([])
       setMessage(error instanceof Error ? error.message : 'No se han podido cargar los horarios')
@@ -80,8 +81,8 @@ export function AvailabilityCalendar({ training }: { training: string }) {
       })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || 'No se ha podido completar la reserva')
-      setMessage('Reserva confirmada. Te esperamos en PGL TRAINNING.')
       await loadSlots(selected)
+      setMessage('Reserva confirmada. Te esperamos en PGL TRAINNING.')
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'No se ha podido completar la reserva')
     } finally {
@@ -113,7 +114,7 @@ export function AvailabilityCalendar({ training }: { training: string }) {
               const past = key < today
               const chosen = key === selected
               const sunday = date.getDay() === 0
-              return <button key={key} type="button" disabled={past || sunday} onClick={() => void loadSlots(key)} className={`min-h-20 border-b border-r border-border p-2 text-left transition-colors ${chosen ? 'bg-accent text-accent-foreground' : 'bg-background hover:bg-secondary'} ${past || sunday ? 'cursor-not-allowed opacity-35' : ''}`}><span className="font-mono text-xs font-bold">{day}</span>{key === today && <span className="mt-2 block text-[10px] font-semibold uppercase tracking-wide">Hoy</span>}</button>
+              return <button key={key} type="button" disabled={past || sunday} onClick={() => setSelected(key)} className={`min-h-20 border-b border-r border-border p-2 text-left transition-colors ${chosen ? 'bg-accent text-accent-foreground' : 'bg-background hover:bg-secondary'} ${past || sunday ? 'cursor-not-allowed opacity-35' : ''}`}><span className="font-mono text-xs font-bold">{day}</span>{key === today && <span className="mt-2 block text-[10px] font-semibold uppercase tracking-wide">Hoy</span>}</button>
             })}
           </div>
         </div>

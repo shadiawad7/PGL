@@ -34,10 +34,11 @@ export async function GET(request: Request) {
   const params = new URL(request.url).searchParams
   const date = params.get('date')
   const training = params.get('training')
-  if (!date || !training) return NextResponse.json({ error: 'Missing date or training' }, { status: 400 })
+  const trainingId = params.get('trainingId')
+  if (!date || (!training && !trainingId)) return NextResponse.json({ error: 'Missing date or training' }, { status: 400 })
   const start = new Date(`${date}T00:00:00+02:00`)
   const end = new Date(`${date}T23:59:59+02:00`)
-  const [type] = await db.select().from(trainingType).where(and(eq(trainingType.name, training), eq(trainingType.active, true))).limit(1)
+  const [type] = await db.select().from(trainingType).where(and(trainingId ? eq(trainingType.id, trainingId) : eq(trainingType.name, training!), eq(trainingType.active, true))).limit(1)
   if (!type) return NextResponse.json({ slots: [], message: 'Este entrenamiento todavía no está configurado.' })
   const existing = await db.select({ slot: timeSlot }).from(timeSlot).where(and(eq(timeSlot.trainingTypeId, type.id), eq(timeSlot.status, 'available'), sql`${timeSlot.startsAt} >= ${start}`, sql`${timeSlot.startsAt} <= ${end}`))
   const existingByStart = new Map(existing.map(({ slot }) => [slot.startsAt.getTime(), slot]))
@@ -77,6 +78,8 @@ export async function POST(request: Request) {
     }
   }
   if (!slot[0] || !isOpening(slot[0].startsAt, slot[0].endsAt) || slot[0].startsAt <= new Date()) return NextResponse.json({ error: 'Horario no disponible' }, { status: 409 })
+  const [activeType] = await db.select({ id: trainingType.id }).from(trainingType).where(and(eq(trainingType.id, slot[0].trainingTypeId), eq(trainingType.active, true))).limit(1)
+  if (!activeType) return NextResponse.json({ error: 'Entrenamiento no disponible' }, { status: 409 })
   const count = await db.select({ count: sql<number>`count(*)` }).from(booking).where(and(eq(booking.timeSlotId, slot[0].id), eq(booking.status, 'confirmed')))
   if (Number(count[0]?.count || 0) >= slot[0].capacity) return NextResponse.json({ error: 'No quedan plazas' }, { status: 409 })
   const duplicate = await db.select({ id: booking.id }).from(booking).where(and(eq(booking.userId, session.user.id), eq(booking.timeSlotId, slot[0].id), eq(booking.status, 'confirmed'))).limit(1)

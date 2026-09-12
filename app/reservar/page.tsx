@@ -1,7 +1,32 @@
 import Link from 'next/link'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { asc, eq } from 'drizzle-orm'
 import { auth } from '@/lib/auth'
+import { db } from '@/lib/db'
+import { trainingType } from '@/lib/db/schema'
 
-const options = [{ name: 'Entrenamiento personal', detail: 'Sesión 1 a 1 · 60 min', price: 'Desde 45 €' }, { name: 'Small group', detail: 'Hasta 6 personas · 50 min', price: 'Desde 25 €' }, { name: 'Valoración inicial', detail: 'Conoce tu punto de partida · 45 min', price: 'Primera sesión' }]
-export default async function ReservePage() { const session = await auth.api.getSession({ headers: await headers() }); if (!session?.user) redirect('/sign-in'); return <main className="min-h-screen bg-secondary"><header className="flex items-center justify-between border-b border-border bg-background px-6 py-6 lg:px-10"><Link href="/" className="font-mono text-sm font-bold tracking-[0.18em]">PGL<span className="text-accent">.</span>TRAINNING</Link><div className="flex items-center gap-5 text-sm"><span className="hidden text-muted-foreground sm:inline">Hola, {session.user.name}</span><Link href="/mi-cuenta" className="font-semibold">Mi cuenta</Link></div></header><div className="mx-auto max-w-5xl px-6 py-16 lg:px-10"><p className="font-mono text-xs uppercase tracking-[0.2em] text-accent">Reserva tu sesión</p><h1 className="mt-5 max-w-2xl text-5xl font-bold tracking-[-0.06em] sm:text-7xl">Entrena con intención.</h1><p className="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">Elige el formato que mejor encaja contigo. Después podrás seleccionar día y hora.</p><div className="mt-14 grid gap-4 md:grid-cols-3">{options.map((option) => <Link key={option.name} href={`/reservar/${encodeURIComponent(option.name)}`} className="flex min-h-64 flex-col justify-between border border-border bg-background p-7 transition-colors hover:border-accent hover:bg-primary hover:text-primary-foreground"><div><span className="font-mono text-xs uppercase tracking-[0.16em] text-accent">Disponible</span><h2 className="mt-12 text-2xl font-bold tracking-[-0.04em]">{option.name}</h2></div><div className="flex justify-between gap-4 text-sm"><span className="text-muted-foreground">{option.detail}</span><span className="font-semibold">{option.price}</span></div></Link>)}</div></div></main> }
+export default async function ReservePage() {
+  const session = await auth.api.getSession({ headers: await headers() })
+  if (!session?.user) redirect('/sign-in')
+  const options = await db.select().from(trainingType).where(eq(trainingType.active, true)).orderBy(asc(trainingType.name))
+
+  return <main className="reservation-page min-h-screen">
+    <header className="flex flex-wrap items-center justify-between gap-5 border-b border-white/15 px-6 py-6 lg:px-10">
+      <Link href="/" className="font-mono text-sm font-bold tracking-[0.18em]">PGL<span className="text-lime-300">.</span>TRAINNING</Link>
+      <nav className="flex items-center gap-5 text-sm font-semibold"><Link href="/">Inicio</Link><Link href="/mi-cuenta">Mi cuenta</Link>{session.user.role === 'admin' && <Link href="/admin">Panel Admin</Link>}</nav>
+    </header>
+    <div className="mx-auto max-w-6xl px-6 py-20 lg:px-10 lg:py-28">
+      <p className="font-mono text-xs uppercase tracking-[0.2em] text-lime-300">Reserva tu sesión</p>
+      <h1 className="mt-5 max-w-2xl text-5xl font-bold tracking-[-0.06em] sm:text-7xl">Entrena con intención.</h1>
+      <p className="mt-6 max-w-xl text-lg leading-8 text-white/75">Elige el formato que mejor encaja contigo. Después podrás seleccionar día y hora.</p>
+      <div className="mt-14 grid gap-5 md:grid-cols-3">
+        {options.map((option, index) => <Link key={option.id} href={`/reservar/${encodeURIComponent(option.id)}`} className="group flex min-h-80 flex-col justify-between gap-8 rounded-2xl border border-white/20 bg-black/45 p-7 backdrop-blur-md transition hover:-translate-y-1 hover:border-lime-300/70 hover:bg-black/65 focus-visible:outline-2 focus-visible:outline-lime-300">
+          <div><span className="font-mono text-xs uppercase tracking-[0.16em] text-lime-300">0{index + 1} / Disponible</span><h2 className="mt-8 text-3xl font-bold tracking-[-0.04em]">{option.name}</h2><p className="mt-4 text-sm leading-6 text-white/70">{option.description}</p></div>
+          <div><p className="text-sm text-white/70">{option.durationMinutes} min · {option.capacity === 1 ? 'Individual' : `Hasta ${option.capacity} personas`}</p><div className="mt-5 flex items-center justify-between border-t border-white/15 pt-5">{option.price > 0 && (<span className="text-xl font-semibold">{new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(option.price)}</span>)}<span className="text-sm font-semibold text-lime-300">Elegir horario →</span></div></div>
+        </Link>)}
+      </div>
+      {options.length === 0 && <p className="mt-10 rounded-xl border border-white/20 bg-black/40 p-6">Todavía no hay entrenamientos disponibles.</p>}
+    </div>
+  </main>
+}

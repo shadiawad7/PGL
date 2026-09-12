@@ -161,3 +161,128 @@
     @apply bg-background text-foreground;
   }
 }
+
+.reservation-page {
+  color: #f5f5f4;
+  background-color: #151b18;
+  background-image: linear-gradient(110deg, rgba(10, 18, 14, .96), rgba(10, 18, 14, .78)), url('/pgl-training-hero.png');
+  background-size: cover;
+  background-position: center;
+}
+
+.reservation-calendar {
+  color-scheme: dark;
+  --background: #18231f;
+  --foreground: #f5f5f4;
+  --secondary: #24352c;
+  --muted: #34433a;
+  --muted-foreground: #bdc9c0;
+  --border: #43554a;
+  --accent: #bef264;
+  --accent-foreground: #17210e;
+  --primary: #bef264;
+  --primary-foreground: #17210e;
+}
+
+.pgl-hero {
+  --hero-progress: 0;
+  --primary: #000;
+  --primary-foreground: #f5f5f4;
+  --accent: #bef264;
+  --accent-foreground: #17210e;
+  background: #000;
+  isolation: isolate;
+}
+
+.pgl-hero-photo {
+  /* Soften every edge into the black canvas, without changing the photograph. */
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 15%, #000 90%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 15%, #000 90%, transparent);
+}
+
+.pgl-hero-photo-reveal {
+  overflow: hidden;
+  clip-path: inset(0 0 calc(7% * (1 - var(--hero-progress))) 0);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+}
+
+.pgl-hero-image {
+  transform-origin: 45% 65%;
+  transform: scale(calc(1 + var(--hero-progress) * 0.045));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pgl-hero-photo-reveal { clip-path: none; }
+  .pgl-hero-image { transform: none; }
+}
+
+.live-section {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  scroll-margin-top: 1.5rem;
+  --accent: #bef264;
+  --accent-foreground: #14200b;
+  --muted-foreground: #c1cbc5;
+  --border: #ffffff26;
+  --primary: #0b1510;
+  --primary-foreground: #fff;
+  background: #0a100d;
+  color: #f5f5f4;
+}
+
+.live-section--glow { background: #101b16; }
+.live-section--photo { background: #050806; }
+.live-section:focus-visible { outline: 2px solid #bef264; outline-offset: -4px; }
+.live-backdrop { position: absolute; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+
+.live-aura {
+  position: absolute;
+  inset: -35%;
+  background: radial-gradient(ellipse at 65% 45%, #9bbd4826, transparent 45%), radial-gradient(ellipse at 25% 75%, #2d846b30, transparent 45%);
+  animation: pgl-aura-drift 18s ease-in-out infinite alternate;
+}
+
+.live-orbit {
+  position: absolute;
+  width: min(90vw, 900px);
+  aspect-ratio: 1;
+  right: -12%;
+  top: -45%;
+  border: 1px solid #d5f9bd18;
+  border-radius: 45% 55% 65% 35%;
+  animation: pgl-orbit-turn 45s linear infinite;
+}
+.live-orbit--two { top: -25%; right: -18%; animation-direction: reverse; animation-duration: 60s; }
+.live-section--lines .live-backdrop {
+  background-image: linear-gradient(#ffffff04 1px, transparent 1px), linear-gradient(90deg, #ffffff04 1px, transparent 1px);
+  background-size: 72px 72px;
+}
+.live-section--lines .live-orbit { border-color: #d5f9bd24; }
+.live-contact .live-orbit { right: 25%; top: -85%; }
+.live-photo { animation: pgl-photo-drift 22s ease-in-out infinite alternate; }
+.live-photo-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #030805ee, #030805a6), linear-gradient(0deg, #050806, transparent 35%, transparent 70%, #050806);
+}
+.live-training-card { transition: transform 250ms ease, border-color 250ms ease, background-color 250ms ease; }
+.live-training-card:hover, .live-training-card:focus-within { transform: translateY(-6px); border-color: #bef26480; background-color: #070f0ddd; }
+.live-section .live-backdrop * { animation-play-state: paused; }
+.live-section[data-visible="true"][data-paused="false"] .live-backdrop * { animation-play-state: running; }
+
+@keyframes pgl-aura-drift {
+  from { transform: translate3d(-3%, -2%, 0) scale(1); }
+  to { transform: translate3d(5%, 4%, 0) scale(1.08); }
+}
+@keyframes pgl-orbit-turn { to { transform: rotate(360deg); } }
+@keyframes pgl-photo-drift {
+  from { transform: scale(1.03) translate3d(0, -1%, 0); }
+  to { transform: scale(1.12) translate3d(-1%, 1%, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-section .live-backdrop * { animation: none !important; }
+  .live-training-card { transition: none; }
+  .live-training-card:hover, .live-training-card:focus-within { transform: none; }
+}

@@ -5,5 +5,34 @@ import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { trainingType, user } from '@/lib/db/schema'
 async function guard() { const session = await auth.api.getSession({ headers: await headers() }); if (!session?.user) return false; const row = await db.select({ role: user.role }).from(user).where(eq(user.id, session.user.id)).limit(1); return row[0]?.role === 'admin' }
-export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) { if (!await guard()) return NextResponse.json({ error: 'Forbidden' }, { status: 403 }); const body = await request.json(); const updates: Partial<typeof trainingType.$inferInsert> = {}; if (typeof body.active === 'boolean') updates.active = body.active; if (typeof body.name === 'string' && body.name.trim()) updates.name = body.name.trim(); if (typeof body.description === 'string' && body.description.trim()) updates.description = body.description.trim(); if (Number.isInteger(body.durationMinutes) && body.durationMinutes >= 15 && body.durationMinutes <= 240) updates.durationMinutes = body.durationMinutes; if (Number.isInteger(body.capacity) && body.capacity >= 1 && body.capacity <= 50) updates.capacity = body.capacity; if (Number.isInteger(body.price) && body.price >= 0) updates.price = body.price; if (Object.keys(updates).length === 0) return NextResponse.json({ error: 'Invalid data' }, { status: 400 }); await db.update(trainingType).set(updates).where(eq(trainingType.id, (await params).id)); return NextResponse.json({ ok: true }) }
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!await guard()) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  let body: Record<string, unknown>
+  try {
+    const parsed = await request.json()
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Invalid body')
+    body = parsed
+  } catch { return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 }) }
+  const updates: Partial<typeof trainingType.$inferInsert> = {}
+  for (const [field, max] of [['name', 120], ['description', 2000]] as const) {
+    if (!(field in body)) continue
+    const value = body[field]
+    if (typeof value !== 'string' || !value.trim() || value.trim().length > max) return NextResponse.json({ error: `Revisa el campo ${field === 'name' ? 'título' : 'descripción'}` }, { status: 400 })
+    updates[field] = value.trim()
+  }
+  for (const [field, min, max] of [['durationMinutes', 15, 240], ['capacity', 1, 50], ['price', 0, 2147483647]] as const) {
+    if (!(field in body)) continue
+    const value = body[field]
+    if (typeof value !== 'number' || !Number.isInteger(value) || value < min || value > max) return NextResponse.json({ error: 'Revisa la duración (15–240 min), las plazas (1–50) y el precio (euros enteros).' }, { status: 400 })
+    updates[field] = value
+  }
+  if ('active' in body) {
+    if (typeof body.active !== 'boolean') return NextResponse.json({ error: 'Estado inválido' }, { status: 400 })
+    updates.active = body.active
+  }
+  if (!Object.keys(updates).length) return NextResponse.json({ error: 'No hay cambios válidos' }, { status: 400 })
+  const rows = await db.update(trainingType).set(updates).where(eq(trainingType.id, (await params).id)).returning({ id: trainingType.id })
+  if (!rows.length) return NextResponse.json({ error: 'Entrenamiento no encontrado' }, { status: 404 })
+  return NextResponse.json({ ok: true })
+}
 export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) { if (!await guard()) return NextResponse.json({ error: 'Forbidden' }, { status: 403 }); await db.delete(trainingType).where(eq(trainingType.id, (await params).id)); return NextResponse.json({ ok: true }) }
