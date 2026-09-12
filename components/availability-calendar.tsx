@@ -93,7 +93,7 @@ export function AvailabilityCalendar({ training }: { training: string }) {
   return (
     <section className="mt-12 border-t border-border pt-8">
       <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="bg-background p-5 sm:p-7">
+        <div className="min-w-0 bg-background p-3 sm:p-7">
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="font-mono text-xs uppercase tracking-[0.16em] text-accent">Calendario de reservas</p>
@@ -106,7 +106,7 @@ export function AvailabilityCalendar({ training }: { training: string }) {
           </div>
           <div className="mt-6 grid grid-cols-7 border-l border-t border-border">
             {WEEKDAYS.map((day) => <div key={day} className="border-b border-r border-border bg-secondary py-3 text-center font-mono text-xs font-bold">{day}</div>)}
-            {Array.from({ length: offset }).map((_, index) => <div key={`empty-${index}`} className="min-h-20 border-b border-r border-border bg-secondary/50" />)}
+            {Array.from({ length: offset }).map((_, index) => <div key={`empty-${index}`} className="min-h-14 sm:min-h-20 border-b border-r border-border bg-secondary/50" />)}
             {Array.from({ length: count }).map((_, index) => {
               const day = index + 1
               const date = new Date(month.getFullYear(), month.getMonth(), day)
@@ -114,12 +114,12 @@ export function AvailabilityCalendar({ training }: { training: string }) {
               const past = key < today
               const chosen = key === selected
               const sunday = date.getDay() === 0
-              return <button key={key} type="button" disabled={past || sunday} onClick={() => setSelected(key)} className={`min-h-20 border-b border-r border-border p-2 text-left transition-colors ${chosen ? 'bg-accent text-accent-foreground' : 'bg-background hover:bg-secondary'} ${past || sunday ? 'cursor-not-allowed opacity-35' : ''}`}><span className="font-mono text-xs font-bold">{day}</span>{key === today && <span className="mt-2 block text-[10px] font-semibold uppercase tracking-wide">Hoy</span>}</button>
+              return <button key={key} type="button" disabled={past || sunday} onClick={() => setSelected(key)} className={`min-h-14 sm:min-h-20 border-b border-r border-border min-w-0 p-1 sm:p-2 text-left transition-colors ${chosen ? 'bg-accent text-accent-foreground' : 'bg-background hover:bg-secondary'} ${past || sunday ? 'cursor-not-allowed opacity-35' : ''}`}><span className="font-mono text-xs font-bold">{day}</span>{key === today && <span className="mt-2 block text-[10px] font-semibold uppercase tracking-wide">Hoy</span>}</button>
             })}
           </div>
         </div>
 
-        <div className="bg-background p-5 sm:p-7">
+        <div className="min-w-0 bg-background p-3 sm:p-7">
           <p className="font-mono text-xs uppercase tracking-[0.16em] text-accent">Horarios disponibles</p>
           <h3 className="mt-2 text-xl font-bold capitalize">{selectedLabel}</h3>
           <p className="mt-2 text-sm text-muted-foreground">Cada 15 minutos · selecciona una hora y confirma tu reserva.</p>
