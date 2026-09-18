@@ -1,3 +1,4 @@
+import { BrandLogo } from '@/components/brand-logo'
 import Link from 'next/link'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -13,7 +14,7 @@ export default async function ReservePage() {
 
   return <main className="reservation-page min-h-screen">
     <header className="flex flex-wrap items-center justify-between gap-5 border-b border-white/15 px-4 py-5 sm:px-6 sm:py-6 lg:px-10">
-      <Link href="/" className="font-mono text-sm font-bold tracking-[0.18em]">PGL<span className="text-lime-300">.</span>TRAINNING</Link>
+      <BrandLogo priority />
       <nav className="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm font-semibold"><Link href="/">Inicio</Link><Link href="/mi-cuenta">Mi cuenta</Link>{session.user.role === 'admin' && <Link href="/admin">Panel Admin</Link>}</nav>
     </header>
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-20 lg:px-10 lg:py-28">

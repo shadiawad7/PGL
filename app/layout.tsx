@@ -3,26 +3,10 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'PGL TRAINNING — Entrena diferente',
+  title: 'PGL TRAINING — Entrena diferente',
   description: 'Entrenamiento personal y small group en Madrid. Un método real para avanzar con intención.',
   generator: 'v0.app',
-  icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
-  },
+  icons: { icon: '/logo-transparent.png', apple: '/logo-transparent.png' },
 }
 
 export const viewport: Viewport = {

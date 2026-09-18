@@ -82,7 +82,7 @@ export function AvailabilityCalendar({ training }: { training: string }) {
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || 'No se ha podido completar la reserva')
       await loadSlots(selected)
-      setMessage('Reserva confirmada. Te esperamos en PGL TRAINNING.')
+      setMessage('Reserva confirmada. Te esperamos en PGL TRAINING.')
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'No se ha podido completar la reserva')
     } finally {
