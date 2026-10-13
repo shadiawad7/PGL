@@ -10,3 +10,10 @@ export const trainingType = pgTable('training_type', { id: text('id').primaryKey
 export const timeSlot = pgTable('time_slot', { id: text('id').primaryKey(), trainingTypeId: text('trainingTypeId').notNull(), startsAt: timestamp('startsAt').notNull(), endsAt: timestamp('endsAt').notNull(), capacity: integer('capacity').notNull().default(1), status: text('status').notNull().default('available') })
 export const booking = pgTable('booking', { id: text('id').primaryKey(), userId: text('userId').notNull(), timeSlotId: text('timeSlotId').notNull(), status: text('status').notNull().default('confirmed'), notes: text('notes'), createdAt: timestamp('createdAt').notNull().defaultNow(), updatedAt: timestamp('updatedAt').notNull().defaultNow() }, (table) => ({ userSlotUnique: uniqueIndex('booking_user_slot_unique').on(table.userId, table.timeSlotId) }))
 export const profile = pgTable('profile', { userId: text('userId').primaryKey(), phone: text('phone'), goals: text('goals'), updatedAt: timestamp('updatedAt').notNull().defaultNow() })
+
+// Recurring common timetable; migration: migrations/001_weekly_schedule.sql.
+export const weeklySchedule = pgTable('weekly_schedule', {
+  weekday: integer('weekday').primaryKey(),
+  minutes: integer('minutes').array().notNull(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+})

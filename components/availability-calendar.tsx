@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 interface Slot {
   id: string
@@ -30,6 +30,7 @@ function keyFor(date: Date) {
 }
 
 export function AvailabilityCalendar({ training }: { training: string }) {
+  const loadRequest = useRef(0)
   const [month, setMonth] = useState(() => new Date())
   const [selected, setSelected] = useState(() => keyFor(new Date()))
   const [slots, setSlots] = useState<Slot[]>([])
@@ -41,6 +42,7 @@ export function AvailabilityCalendar({ training }: { training: string }) {
   const title = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(month)
 
   async function loadSlots(date: string) {
+    const requestId = ++loadRequest.current
     setSelected(date)
     setSelectedSlot(null)
     setLoading(true)
@@ -48,19 +50,22 @@ export function AvailabilityCalendar({ training }: { training: string }) {
     try {
       const response = await fetch(`/api/bookings?date=${date}&trainingId=${encodeURIComponent(training)}`, { cache: 'no-store' })
       const data = await response.json()
+      if (requestId !== loadRequest.current) return
       if (!response.ok) throw new Error(data.error || 'No se han podido cargar los horarios')
       setSlots(data.slots || [])
       if (data.message) setMessage(data.message)
     } catch (error) {
+      if (requestId !== loadRequest.current) return
       setSlots([])
       setMessage(error instanceof Error ? error.message : 'No se han podido cargar los horarios')
     } finally {
-      setLoading(false)
+      if (requestId === loadRequest.current) setLoading(false)
     }
   }
 
   useEffect(() => {
     void loadSlots(selected)
+    return () => { loadRequest.current++ }
     // The selected date intentionally drives the availability request.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected, training])
@@ -80,7 +85,10 @@ export function AvailabilityCalendar({ training }: { training: string }) {
         body: JSON.stringify({ timeSlotId: selectedSlot }),
       })
       const data = await response.json()
-      if (!response.ok) throw new Error(data.error || 'No se ha podido completar la reserva')
+      if (!response.ok) {
+        if (response.status === 409) await loadSlots(selected)
+        throw new Error(data.error || 'No se ha podido completar la reserva')
+      }
       await loadSlots(selected)
       setMessage('Reserva confirmada. Te esperamos en PGL TRAINING.')
     } catch (error) {
@@ -113,8 +121,7 @@ export function AvailabilityCalendar({ training }: { training: string }) {
               const key = keyFor(date)
               const past = key < today
               const chosen = key === selected
-              const sunday = date.getDay() === 0
-              return <button key={key} type="button" disabled={past || sunday} onClick={() => setSelected(key)} className={`min-h-14 sm:min-h-20 border-b border-r border-border min-w-0 p-1 sm:p-2 text-left transition-colors ${chosen ? 'bg-accent text-accent-foreground' : 'bg-background hover:bg-secondary'} ${past || sunday ? 'cursor-not-allowed opacity-35' : ''}`}><span className="font-mono text-xs font-bold">{day}</span>{key === today && <span className="mt-2 block text-[10px] font-semibold uppercase tracking-wide">Hoy</span>}</button>
+              return <button key={key} type="button" disabled={past || loading} onClick={() => setSelected(key)} className={`min-h-14 sm:min-h-20 border-b border-r border-border min-w-0 p-1 sm:p-2 text-left transition-colors ${chosen ? 'bg-accent text-accent-foreground' : 'bg-background hover:bg-secondary'} ${past ? 'cursor-not-allowed opacity-35' : ''}`}><span className="font-mono text-xs font-bold">{day}</span>{key === today && <span className="mt-2 block text-[10px] font-semibold uppercase tracking-wide">Hoy</span>}</button>
             })}
           </div>
         </div>
@@ -122,7 +129,7 @@ export function AvailabilityCalendar({ training }: { training: string }) {
         <div className="min-w-0 bg-background p-3 sm:p-7">
           <p className="font-mono text-xs uppercase tracking-[0.16em] text-accent">Horarios disponibles</p>
           <h3 className="mt-2 text-xl font-bold capitalize">{selectedLabel}</h3>
-          <p className="mt-2 text-sm text-muted-foreground">Cada 15 minutos · selecciona una hora y confirma tu reserva.</p>
+          <p className="mt-2 text-sm text-muted-foreground">Horarios publicados por el centro · selecciona una hora y confirma tu reserva.</p>
           {loading && <p className="mt-6 text-sm text-muted-foreground">Consultando reservas...</p>}
           {!loading && slots.length === 0 && <p className="mt-6 border border-border p-4 text-sm text-muted-foreground">No hay horarios disponibles para este día.</p>}
           {!loading && slots.length > 0 && <>
