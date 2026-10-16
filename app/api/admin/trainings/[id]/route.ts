@@ -20,10 +20,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (typeof value !== 'string' || !value.trim() || value.trim().length > max) return NextResponse.json({ error: `Revisa el campo ${field === 'name' ? 'título' : 'descripción'}` }, { status: 400 })
     updates[field] = value.trim()
   }
-  for (const [field, min, max] of [['durationMinutes', 15, 240], ['capacity', 1, 50], ['price', 0, 2147483647]] as const) {
+  for (const [field, min, max] of [['durationMinutes', 15, 240], ['capacity', 1, 50]] as const) {
     if (!(field in body)) continue
     const value = body[field]
-    if (typeof value !== 'number' || !Number.isInteger(value) || value < min || value > max) return NextResponse.json({ error: 'Revisa la duración (15–240 min), las plazas (1–50) y el precio (euros enteros).' }, { status: 400 })
+    if (typeof value !== 'number' || !Number.isInteger(value) || value < min || value > max) return NextResponse.json({ error: 'Revisa la duración (15–240 min), las plazas (1–50).' }, { status: 400 })
     updates[field] = value
   }
   if ('active' in body) {

@@ -32,7 +32,7 @@ export function LiveSection({ id, variant, paused, className = '', children }: {
   return <section ref={sectionRef} id={id} tabIndex={id ? -1 : undefined} data-paused={paused} className={`live-section live-section--${variant} ${className}`}>
     <div className="live-backdrop" aria-hidden="true">
       {variant === 'photo' ? <>
-        <Image src="/pablo.JPG" alt="" fill sizes="100vw" className="live-photo object-cover object-[center_58%]" />
+        <Image src="/pablo-focus.png" alt="" fill sizes="100vw" className="live-photo object-cover object-[center_58%]" />
         <div className="live-photo-shade" />
       </> : <><div className="live-aura" /><div className="live-orbit live-orbit--one" /><div className="live-orbit live-orbit--two" /></>}
     </div>
