@@ -1,5 +1,6 @@
 'use client'
 
+import { PrivacyNotice } from '@/components/privacy-notice'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 interface Slot {
@@ -141,6 +142,7 @@ export function AvailabilityCalendar({ training }: { training: string }) {
                 return <button key={slot.id} type="button" disabled={!available || loading} onClick={() => setSelectedSlot(slot.id)} aria-pressed={chosen} className={`flex items-center justify-between border p-3 text-left transition-colors ${chosen ? 'border-accent bg-accent text-accent-foreground' : available ? 'border-border bg-background hover:border-accent' : 'cursor-not-allowed border-border bg-muted opacity-50'}`}><span className="font-mono text-sm font-bold">{madridTime.format(new Date(slot.startsAt))}–{madridTime.format(new Date(slot.endsAt))}</span><span className="text-[11px]">{available ? 'Libre' : 'Ocupado'}</span></button>
               })}
             </div>
+            <div className="mt-6"><PrivacyNotice context="booking" /></div>
             <button type="button" disabled={!selectedSlot || loading} onClick={() => void reserve()} className="mt-6 w-full bg-primary px-5 py-4 text-sm font-bold text-primary-foreground transition-opacity disabled:cursor-not-allowed disabled:opacity-40">{loading ? 'Procesando...' : 'Confirmar reserva'}</button>
           </>}
           {message && <p className="mt-5 border border-accent p-4 text-sm font-semibold">{message}</p>}

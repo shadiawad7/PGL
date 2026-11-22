@@ -1,4 +1,5 @@
-import { Analytics } from '@vercel/analytics/next'
+import { SiteFooter } from '@/components/site-footer'
+import { TechnicalCookieNotice } from '@/components/technical-cookie-notice'
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
@@ -26,7 +27,8 @@ export default function RootLayout({
     <html lang="es" className="bg-background">
       <body className="antialiased">
         {children}
-        {process.env.NODE_ENV === 'production' && <Analytics />}
+        <SiteFooter />
+        <TechnicalCookieNotice />
       </body>
     </html>
   )
